@@ -1,0 +1,17 @@
+#include "Vertex.h"
+#include "Edge.h"
+
+Vertex::Vertex(Edge* e, float xo,float yo, float zo)
+{
+	edge=e;
+	x=xo; y=yo; z=zo;
+}
+glVertex3f getVertex()
+{
+return NULL;
+}
+
+Face::face(Edge* e)
+{
+	edge=e;
+}

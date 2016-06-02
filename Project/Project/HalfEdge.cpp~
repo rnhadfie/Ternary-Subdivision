@@ -1,0 +1,119 @@
+#include "Window.h"
+#include "Object.h"
+#include "HalfEdge.h"
+#include "GL/glu.h"
+#include "Edge.h"
+#include "Vertex.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <algorithm>
+
+vector<Face> Hef;
+vector<Vertex> Hev;
+vector<Edge> Hee;
+vector<double> pairX;
+vector<double> pairY;
+using namespace std;
+using namespace glm;
+
+
+void loadHalfEdge()
+{
+	vector<float> vert=returnVerticesList();
+	vector<double> fac=returnFaceList();
+	
+	for(int i=0; i<vert.size(); i+=3)
+	{
+		Vertex v;
+		v.x=vert[i];
+		v.y=vert[i+1];
+		v.z=vert[i+2];
+		Hev.push_back(v);
+		
+	}
+	for(int i=0; i<fac.size(); i+=3)
+	{
+		Edge e1,e2,e3;
+		Hee.push_back(e1);
+		Hee.push_back(e2);
+		Hee.push_back(e3);
+		
+		double v1=fac[i]; double v2=fac[i+1]; double v3=fac[i+2];
+
+		 Hev[v1].edge=&Hee[i]; 
+		
+		Hev[v2].edge=&Hee[i+1]; 
+		
+		Hev[v3].edge=&Hee[i+2]; 
+		
+		Vertex v;		
+
+		Hee[i].next=&Hee[i+1]; 		Hee[i].vert=&Hev[v1]; 	Hee[i].face=&Hef[i/3];
+		Hee[i+1].next=&Hee[i+2];	Hee[i+1].vert=&Hev[fac[i+1]];	Hee[i+1].face=&Hef[i/3]; 
+		Hee[i+2].next=&Hee[i];		Hee[i+2].vert=&Hev[fac[i+2]];	Hee[i+2].face=&Hef[i/3]; 
+		
+		Face f;
+		Hef.push_back(f);
+		Hef[i/3].edge=&Hee[i+1];
+		
+		pairX.push_back(i); pairY.push_back(i+1);
+		pairX.push_back(i+1); pairY.push_back(i+2);
+		pairX.push_back(i+2); pairY.push_back(i);
+
+		vector<double>::iterator it1;
+		vector<double>::iterator it2;
+  		it1 = find (pairX.begin(), pairX.end(), i+1);
+		it2 = find (pairY.begin(), pairY.end(), i);	
+		if(it1!=pairX.end() && it1!=pairY.end() && *it1==*it2)
+		{
+			Hee[i].pair=&Hee[*it1];
+			Hee[*it1].pair=&Hee[i];
+		}
+		it1 = find (pairX.begin(), pairX.end(), i+2);
+		it2 = find (pairY.begin(), pairY.end(), i+1);	
+		if(it1!=pairX.end() && it1!=pairY.end() && *it1==*it2)
+		{
+			Hee[i+1].pair=&Hee[*it1];
+			Hee[*it1].pair=&Hee[i+1];
+		}
+
+		it1 = find (pairX.begin(), pairX.end(), i);
+		it2 = find (pairY.begin(), pairY.end(), i+2);	
+		if(it1!=pairX.end() && it1!=pairY.end() && *it1==*it2)
+		{
+			Hee[i+2].pair=&Hee[*it1];
+			Hee[*it1].pair=&Hee[i+2];
+		}		
+	}
+			
+}
+vector<Vertex> getVertices()
+{
+	//loadHalfEdge();
+	return Hev;
+}
+vector<Face> getFace()
+{
+	/*for(int i=0; i<Hef.size(); i++)
+	{
+		Edge e=*Hef[i].edge;
+		Vertex v=*e.vert;
+		for(int j=0; j<3; j++){
+		cout<<v.x<<" "<<v.y<<" "<<v.z<<"\n";
+		e=*e.next;
+		v=*e.vert;
+		}
+		
+		cout<<"\n";
+	}*/
+	//loadHalfEdge();
+	return Hef;
+}
+void clearData()
+{
+	Hef.clear();
+	Hev.clear();
+	Hee.clear();
+	cout<<Hef.size()<<" "<<Hev.size()<<" "<<Hee.size()<<"\n";
+}

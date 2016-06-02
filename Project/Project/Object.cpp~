@@ -1,0 +1,93 @@
+
+#include "Object.h"
+
+using namespace std;
+
+vector<double> fac;
+vector<float> vertices;
+glm::vec3 maxvec;
+glm::vec3 minvec;
+string fileName;
+int readFile(int argc, char ** argv){
+	if (argc<2)
+	{
+		cout<< "Usage "<<argv[0]<<" filename\n";
+    		return -1;
+	}
+	ifstream reader (argv[1]);
+	if(!reader.is_open())
+	{
+		cout<<"file not open\n";
+		return -1;
+	}
+	cout<<"Reading file\n";
+	char c [256];
+	//fileName=argv[1];
+	while(reader.peek()=='#')
+	{
+		reader.getline(c, 256);        
+	}
+	//Reads the file while it is possible to read characters
+	//if the charater is ‘v’ the next 3 character are vector data, else if its a ‘f’ the next three characters are face data
+	char s;
+	while(reader>>s)
+	{
+		if(s=='v')
+		{
+			float v1,v2,v3;
+			reader>>v1;
+			reader>>v2;
+			reader>>v3;
+			
+			vertices.push_back(v1);
+			vertices.push_back(v2);
+			vertices.push_back(v3);
+			isMaxOrMin(v1,v2,v3);
+		}
+		else if(s=='f')
+		{
+			
+			double f;
+			reader>>f;
+			fac.push_back(--f);
+			reader>>f;
+			fac.push_back(--f);
+			reader>>f;
+			fac.push_back(--f);
+		}
+	}
+	reader.close();
+	return 1;
+}
+
+void isMaxOrMin(GLfloat n1,GLfloat n2,GLfloat n3)
+{
+	if(n1>=maxvec.x)
+		maxvec.x=n1;
+	if(n1<=minvec.x)
+		minvec.x=n1;
+	if(n2>=maxvec.y)
+		maxvec.y=n2;
+	if(n2<=minvec.y)
+		minvec.y=n2;
+	if(n3>=maxvec.z)
+		maxvec.z=n3;
+	if(n3<=minvec.z)
+		minvec.z=n3;	
+}
+glm::vec3 returnMax()
+{
+	return maxvec;
+}
+glm::vec3 returnMin()
+{
+	return minvec;
+}
+vector<float> getVertices()
+{
+	return vertices;
+}
+vector<double> getfaces()
+{
+	return fac;
+}

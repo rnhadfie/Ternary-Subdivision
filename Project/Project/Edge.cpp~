@@ -1,0 +1,16 @@
+#include "Edge.h"
+#include "Vertex.h"
+
+Edge::Edge(Edge* p, Edge* n,Vertex* v,Face* f)
+{
+	vert=v;
+	next=n;
+	pair=p;
+	face=f;
+}
+/*
+Edge::Edge setPair(Edge e, Edge* p)
+{
+	//Edge temp=Edge(p,e.next,e.vert,e.face);
+	return NULL;
+}*/

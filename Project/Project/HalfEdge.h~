@@ -1,0 +1,10 @@
+#ifndef HALFEDGE_H
+#define HALFEDGE_H
+
+#include <utility>  
+#include "Vertex.h"
+void loadHalfEdge();
+vector<Vertex> getVertices();
+vector<Face> getFace();
+#endif
+

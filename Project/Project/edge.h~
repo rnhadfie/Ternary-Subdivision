@@ -1,0 +1,17 @@
+#ifndef VERTICES_H
+#define VERTICES_H
+#include "GL/glu.h"
+#include "face.h"
+#include "vertices.h"
+class HE_vertice
+{
+	public:
+		HE_vertice* v;
+		HE_edge* pair;
+		HE_face* f;
+		HE_edge* next;
+};
+
+
+#endif
+

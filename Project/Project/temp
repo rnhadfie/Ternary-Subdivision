@@ -1,0 +1,521 @@
+#include "Window.h"
+#include "Object.h"
+#include "HalfEdgep.h"
+#include "GL/glu.h"
+#include "Edge.h"
+#include "Vertex.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <algorithm>
+
+#define PI 3.1415926535897932384626433832795 
+
+
+glm::vec3 maxvec;
+glm::vec3 minvec;
+double alpha=5.0/9.0;
+double mew=1.0/3.0;
+double beta=alpha-pow(mew,2);
+using namespace std;
+using namespace glm;
+
+Vertex Vertex::operator- (Vertex p){
+    Vertex v;
+	v.x=x-p.x;
+	v.y=y-p.y;
+	v.z=z-p.z;
+    return v;   
+}
+
+Vertex Vertex::operator* (double p){
+    Vertex v;
+	v.x=x*p;
+	v.y=y*p;
+	v.z=z*p;
+    return v;   
+}
+
+Vertex Vertex::operator/ (double p){
+    Vertex v;
+	v.x=x/p;
+	v.y=y/p;
+	v.z=z/p;
+    return v;   
+}
+
+Vertex Vertex::operator+ (Vertex p){
+    Vertex v;
+	v.x=x+p.x;
+	v.y=y+p.y;
+	v.z=z+p.z;
+    return v;   
+}
+
+double getIt(double x,double y, vector<double> pair)
+{
+	for(int i=0; i<pair.size(); i+=2)
+	{
+		//cout<<pair[i]<<" "<<pair[i+1]<<" "<<x<<" "<<y<<"\n";
+		if(pair[i]==y && pair[i+1]==x)
+			return i/2;
+	}
+	return -1;
+}
+int valance(Vertex* v)
+{
+	int n=0;
+	Edge* e=(v->edge)->pair;
+	if(e==NULL)
+		return n;
+	Edge* e0=e;
+	do
+	{	
+		e=e->next->pair;
+		if(e!=NULL)
+			return n;
+		n++;
+	}
+	while(e!=e0);
+	return n;
+}
+
+void HEdgeStruct::empty()
+{
+	for(int i=0; i<Hef.size(); i++)
+	{
+		Hef[i]=NULL;
+		delete Hef[i];
+	}
+	for(int i=0; i<Hee.size(); i++)
+	{
+		Hee[i]=NULL;
+		delete Hee[i];
+	}
+	for(int i=0; i<Hev.size(); i++)
+	{
+		Hev[i]=NULL;
+		delete Hev[i];
+	}
+}
+
+HEdgeStruct::HEdgeStruct(char ** argv)
+{
+	//vector<float> vert=returnVerticesList();
+	vector<double> fac;
+	ifstream reader (argv[1]);
+	cout<<"Reading file\n";
+	char c [256];
+	//fileName=argv[1];
+	while(reader.peek()=='#')
+	{
+		reader.getline(c, 256);        
+	}
+	//Reads the file while it is possible to read characters
+	//if the charater is ‘v’ the next 3 character are vector data, else if its a ‘f’ the next three characters are face data
+
+	char s;
+	while(reader>>s)
+	{
+		if(s=='v')
+		{
+			double v1,v2,v3;
+			reader>>v1;
+			reader>>v2;
+			reader>>v3;
+
+			Vertex* v=new Vertex;
+			v->x=v1;
+			v->y=v2;
+			v->z=v3;
+			Hev.push_back(v);
+			isMaxOrMin(v1,v2,v3);
+		}
+		else if(s=='f')
+		{
+			
+			double f;
+			reader>>f;
+			fac.push_back(--f);
+			reader>>f;
+			fac.push_back(--f);
+			reader>>f;
+			fac.push_back(--f);
+		}
+	}
+	reader.close();
+	
+	for(int i=0; i<fac.size(); i+=3)
+	{
+		Edge* e1=new Edge;
+		Edge* e2=new Edge;
+		Edge* e3=new Edge;
+		
+		Face* f=new Face;
+		f->edge=e1;
+		
+		e1->face=f;
+		e2->face=f;
+		e3->face=f;
+		
+		e1->vert=Hev[fac[i]];
+		e2->vert=Hev[fac[i+1]];
+		e3->vert=Hev[fac[i+2]];
+		Hev[fac[i]]->edge=e1;
+		Hev[fac[i+1]]->edge=e2;
+		Hev[fac[i+2]]->edge=e3;
+		
+		e1->next=e2;
+		e2->next=e3;
+		e3->next=e1;
+
+		e1->pair=NULL;
+		e2->pair=NULL;
+		e3->pair=NULL;
+
+		ePair.push_back(fac[i]); ePair.push_back(fac[i+1]);
+		ePair.push_back(fac[i+1]); ePair.push_back(fac[i+2]);
+		ePair.push_back(fac[i+2]); ePair.push_back(fac[i]);
+		
+		double val=getIt(fac[i],fac[i+1],ePair);
+		//cout<<val<<"\n";
+		if(val!=-1.0)
+		{
+			e1->pair=Hee[val];
+			Hee[val]->pair=e1;
+			
+		}
+		val=getIt(fac[i+1],fac[i+2],ePair);
+		//cout<<val<<"\n";
+		if(val!=-1.0)
+		{
+			e2->pair=Hee[val];
+			Hee[val]->pair=e2;
+			
+		}
+
+		val=getIt(fac[i+2],fac[i],ePair);
+		
+		if(val!=-1.0)
+		{
+			e3->pair=Hee[val];
+			Hee[val]->pair=e3;
+			
+		}
+		Hee.push_back(e1);
+		Hee.push_back(e2);
+		Hee.push_back(e3);
+		Hef.push_back(f);
+				
+		
+	}
+	for(int i=0; i<Hee.size(); i++)
+	{
+		if(Hee[i]->pair==NULL)
+			cout<<"1\n";
+	}	
+			
+}
+
+HEdgeStruct::HEdgeStruct(vector<double> fac, vector<Vertex*> vt)
+{
+	Hev=vt;
+	for(int i=0; i<fac.size(); i+=3)
+	{
+		Edge* e1=new Edge;
+		Edge* e2=new Edge;
+		Edge* e3=new Edge;
+		
+		Face* f=new Face;
+		f->edge=e1;
+		
+		e1->face=f;
+		e2->face=f;
+		e3->face=f;
+		
+		e1->vert=Hev[fac[i]];
+		e2->vert=Hev[fac[i+1]];
+		e3->vert=Hev[fac[i+2]];
+		Hev[fac[i]]->edge=e1;
+		Hev[fac[i+1]]->edge=e2;
+		Hev[fac[i+2]]->edge=e3;
+		
+		e1->next=e2;
+		e2->next=e3;
+		e3->next=e1;
+		e1->pair=NULL;
+		e2->pair=NULL;
+		e3->pair=NULL;
+		ePair.push_back(fac[i]); ePair.push_back(fac[i+1]);
+		ePair.push_back(fac[i+1]); ePair.push_back(fac[i+2]);
+		ePair.push_back(fac[i+2]); ePair.push_back(fac[i]);
+		
+		double val=getIt(fac[i],fac[i+1],ePair);
+		//cout<<val<<"\n";
+		if(val!=-1.0)
+		{
+			e1->pair=Hee[val];
+			Hee[val]->pair=e1;
+			
+		}
+		val=getIt(fac[i+1],fac[i+2],ePair);
+		//cout<<val<<"\n";
+		if(val!=-1.0)
+		{
+			e2->pair=Hee[val];
+			Hee[val]->pair=e2;
+			
+		}
+
+		val=getIt(fac[i+2],fac[i],ePair);
+		
+		if(val!=-1.0)
+		{
+			e3->pair=Hee[val];
+			Hee[val]->pair=e3;
+			
+		}
+		Hee.push_back(e1);
+		Hee.push_back(e2);
+		Hee.push_back(e3);
+		Hef.push_back(f);
+
+	}
+}
+vector<Vertex*> HEdgeStruct::getVertices()
+{
+	return Hev;
+}
+vector<Face*> HEdgeStruct::getFace()
+{
+	return Hef;
+}
+
+double vExists(vector<Vertex*> ev,Vertex* v)
+{
+	for(double i=0.0; i<ev.size(); i++)
+	{
+		if(ev[i]->x==v->x && ev[i]->y==v->y && ev[i]->z==v->z)
+			return i;
+	}
+	return -1.0;
+}
+
+Vertex subVertexValue(Vertex* v,int n)
+{
+	Vertex m1=*v;
+	m1=m1*alpha;
+	Edge* e=(v->edge)->pair;
+	if(e!=NULL){
+	Edge* e0=e;
+	do
+	{
+		e=e->next->pair;
+		if(e!=NULL){
+			Vertex m=*(e->vert);
+		
+		m1=m1+m*((1.0-alpha)/n);
+		}
+		else
+			e=e0;
+	}
+	while(e!=e0);	
+	}
+	return m1;
+}
+double C(int k, int n)
+{
+	return cos((2*PI*k)/n);
+}
+double lanmda(int j, int n)
+{
+	if(j==0)
+		return (1.0-beta);
+	else if(j>0 && j<=3)
+		return pow(mew,j);
+	else if(j>=n-3 && j<n)
+		return pow(mew, n-j);
+	else
+		return 0.0;
+}
+/*double nFk(int k, int n)
+{
+	double val=lanmda(0,n)+C(k*0, n);
+	int h=ceil((double)n/2.0);
+	double val2=0;
+	for(int j=0; j<h-1; j++)
+	{
+		val2=val2+lanmda(j,n)+C(j*k,n);
+	}
+	bool even=false;
+	if(n%2==0)
+		even=true;	
+	val=val+2*val2+(even*lanmda(h,n)+C(k*h,n));
+	return val;
+}*/
+
+vector<double> Fn(int n)
+{
+	int k=n;
+	vector<double> weights;
+	for(int i=0; i<k; i++)
+	{
+		double yk=0.0;
+		for(int j=0; j<n-1; j++)
+		{
+			yk=yk+lanmda(j,n)*C(i*k,n);
+		}
+		yk=yk/(double)n;
+		weights.push_back(yk);
+	}
+	return weights;
+		
+}
+Vertex applyVertexValue(Vertex* v)
+{
+	Vertex m;
+	double n=valance(v);
+	m=subVertexValue(v,n);
+	return m;
+	
+}
+
+HEdgeStruct* HEdgeStruct::subdivision()
+{	
+	
+	vector<Vertex*>ev;
+	
+	vector<double>fac;
+	for(int i=0; i<Hef.size(); i++)
+	{
+		
+		Edge* e=Hef[i]->edge;
+		vector<Vertex*>nv;
+		
+		for(int j=0; j<3; j++)
+		{
+
+			Vertex* p=new Vertex;
+			Vertex* n=new Vertex;
+			Vertex* nVer1=new Vertex;
+			Vertex* nVer2=new Vertex;		
+
+			p=(e->vert);
+			
+
+			n=((e->next)->vert);
+			
+			Vertex n1=((*n)*(1.0/3.0)+(*p)*(2.0/3.0));
+			Vertex n2=((*n)*(2.0/3.0)+*(p)*(1.0/3.0));
+			
+			nVer1->x=n1.x;
+			nVer1->y=n1.y;
+			nVer1->z=n1.z;
+	
+			nVer2->x=n2.x;
+			nVer2->y=n2.y;
+			nVer2->z=n2.z;
+			
+			
+			if(vExists(ev,p)==-1.0)
+				ev.push_back(p);
+			if(vExists(ev,nVer1)==-1.0)
+				ev.push_back(nVer1);
+			if(vExists(ev,nVer2)==-1.0)
+				ev.push_back(nVer2);
+			
+			nv.push_back(p);
+			nv.push_back(nVer1);
+			nv.push_back(nVer2);
+			e=e->next;
+		}
+		
+		
+		Vertex p=*(e->vert);
+		Vertex n=*((e->next)->vert);
+		Vertex v=*(((e->next)->next)->vert);
+		Vertex c=(p+v+n)/3;
+		
+		Vertex* cn=new Vertex;
+		cn->x=c.x;
+		cn->y=c.y;
+		cn->z=c.z;
+		
+		ev.push_back(cn);
+		nv.push_back(cn);
+		
+
+		double e1=1.0;
+		fac.push_back(vExists(ev,nv[0.0]));
+		fac.push_back(vExists(ev,nv[1.0]));
+		fac.push_back(vExists(ev,nv[8.0]));
+		for(int k=0; k<5; k++)
+		{
+			if(k%2==0)
+			{
+				fac.push_back(vExists(ev,nv[e1++]));
+				fac.push_back(vExists(ev,nv[e1]));
+				fac.push_back(vExists(ev,nv[9.0]));
+			}
+			else
+			{
+				fac.push_back(vExists(ev,nv[e1++]));
+				fac.push_back(vExists(ev,nv[e1++]));
+				fac.push_back(vExists(ev,nv[e1]));
+			}	
+		}
+		e1=1.0;
+		for(int k=0; k<3; k++)
+		{
+			if(k==0)
+			{
+				fac.push_back(vExists(ev,nv[9.0]));
+				fac.push_back(vExists(ev,nv[9.0-e1]));
+				fac.push_back(vExists(ev,nv[e1]));
+			}
+			else if(k==1)
+			{
+				fac.push_back(vExists(ev,nv[9.0]));
+				fac.push_back(vExists(ev,nv[9.0-(e1+3.0)]));
+				fac.push_back(vExists(ev,nv[e1]));
+			}
+			else
+			{
+				fac.push_back(vExists(ev,nv[9.0]));
+				fac.push_back(vExists(ev,nv[9.0-(e1-3.0)]));
+				fac.push_back(vExists(ev,nv[e1++]));
+			}
+		e1+=3.0;	
+		}
+		
+			
+
+	}
+	HEdgeStruct* n=new HEdgeStruct(fac,ev);
+	return n;
+}
+
+void isMaxOrMin(GLfloat n1,GLfloat n2,GLfloat n3)
+{
+	if(n1>=maxvec.x)
+		maxvec.x=n1;
+	if(n1<=minvec.x)
+		minvec.x=n1;
+	if(n2>=maxvec.y)
+		maxvec.y=n2;
+	if(n2<=minvec.y)
+		minvec.y=n2;
+	if(n3>=maxvec.z)
+		maxvec.z=n3;
+	if(n3<=minvec.z)
+		minvec.z=n3;	
+}
+glm::vec3 returnMax()
+{
+	return maxvec;
+}
+glm::vec3 returnMin()
+{
+	return minvec;
+}
+

@@ -1,0 +1,15 @@
+#ifndef VERTICES_H
+#define VERTICES_H
+#include "GL/glu.h"
+#include "edge.h"
+class HE_vertice
+{
+	public:
+		HE_edge* edge;
+		GLfloat x,y,z;
+		HE_VERTICE(HE_edge* e, GLfloat x,GLfloat y, GLfloat z);
+};
+
+
+#endif
+

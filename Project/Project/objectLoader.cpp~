@@ -1,0 +1,82 @@
+
+#include "objectLoader.h"
+
+using namespace std;
+vector<short> faceIndices;
+vector<float> vertices;
+
+void readFile(int argc, char ** argv){
+	if (argc<2)
+	{
+		cout<< "Usage "<<argv[0]<<" filename\n";
+    		return;
+	}
+	ifstream reader (argv[1]);
+	if(!reader.is_open())
+	{
+		cout<<"file not open\n";
+		return;
+	}
+	    
+	cout<<"Reading file\n";
+	char c [256];
+	while(reader.peek()=='#')
+	{
+		reader.getline(c, 256);        
+	}
+	    //Reads the file while it is possible to read characters
+		//if the charater is ‘v’ the next 3 character are vector data, else if its a ‘f’ the next three characters are face data
+	char s;
+	while(reader>>s)
+	{
+		if(s=='v')
+		{
+			float v;
+			reader>>v;
+			vertices.push_back(v);
+			reader>>v;
+			vertices.push_back(v);
+			reader>>v;
+			vertices.push_back(v);	
+		}
+		else if(s=='f')
+		{
+			short f;
+			reader>>f;
+			faceIndices.push_back(--f);
+			reader>>f;
+			faceIndices.push_back(--f);
+			reader>>f;
+			faceIndices.push_back(--f);
+		}
+		
+	}/*
+	for(int i=0; i<vertices.size(); i=i+3)
+	{
+		cout<<vertices[i]<<" "<<vertices[i+1]<<" "<<vertices[i+2]<<"\n";
+	}
+	cout<<"\n";
+	for(int i=0; i<faceIndices.size(); i=i+3)
+	{
+		cout<<faceIndices[i]<<" "<<faceIndices[i+1]<<" "<<faceIndices[i+2]<<"\n";
+	}*/
+}
+vector<float> orderVerticesByFace()
+{
+	vector<float> newVerticesList;
+	for(int i=0; i<faceIndices.size(); i++)
+	{
+		newVerticesList.push_back(vertices[faceIndices[i]]);
+		newVerticesList.push_back(vertices[faceIndices[i]+1]);
+		newVerticesList.push_back(vertices[faceIndices[i]+2]);
+	}
+	return newVerticesList;
+}
+vector<float> returnVerticesList()
+{
+	return vertices
+}
+vector<short> returnFaceList()
+{
+	return vertices
+}

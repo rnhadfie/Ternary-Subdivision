@@ -1,0 +1,31 @@
+#ifndef HALFEDGE_H
+#define HALFEDGE_H
+
+#include <utility>  
+#include "Vertex.h"
+class HEdgeStruct
+{
+ public:
+vector<Face*> Hef;
+vector<Vertex*> Hev;
+vector<Edge*> Hee;
+vector<double> ePair;
+
+HEdgeStruct(char ** );
+HEdgeStruct(vector<double>,vector<Vertex*>);
+vector<Vertex*> getVertices();
+vector<Face*> getFace();
+HEdgeStruct* createNewMask();
+HEdgeStruct* subdivision();
+void empty();
+
+
+};
+//HEdgeStruct * returnHEFile(char ** argv);
+
+void isMaxOrMin(float n1,float n2,float n3);
+int valance(Vertex*);
+glm::vec3 returnMax();
+glm::vec3 returnMin();
+#endif
+

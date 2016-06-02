@@ -1,0 +1,15 @@
+#ifndef OBJECTLOADER_H
+#define OBJECTLOADER_H
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+using namespace std;
+void readFile(int argc, char ** argv);
+vector<float> orderVerticesByFace();
+//vector<float> returnVerticesList();
+//vector<short> returnFaceList();
+#endif

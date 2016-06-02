@@ -1,0 +1,13 @@
+#ifndef FACE_H
+#define FACE_H
+#include "GL/glu.h"
+#include "edge.h"
+class HE_vertice
+{
+	public:
+		HE_edge* edge;
+};
+
+
+#endif
+

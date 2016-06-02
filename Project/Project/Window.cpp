@@ -1,0 +1,63 @@
+/*
+
+Rhianne Hadfied
+10084038
+*/
+#include "Window.h"
+bool save=false;
+bool sub=false;
+using namespace std;
+
+
+/*
+ * Controls if the tangent is visable
+*/
+void mouseButton (GLFWwindow *window, int button, int action, int mods)
+{
+  
+}
+
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+	    glfwSetWindowShouldClose(window, GL_TRUE);
+	if (key == GLFW_KEY_S && action == GLFW_PRESS)
+	    	save=true;
+	if (key == GLFW_KEY_T && action == GLFW_PRESS)
+	    	sub=true;
+}
+
+/*Sets up the window and keyboard input*/
+GLFWwindow* setupWindow(){
+GLFWwindow* window;
+	if (!glfwInit())
+		exit(EXIT_FAILURE);
+	  
+	//Setting up Window and keyboard callback
+	glfwWindowHint(GLFW_SAMPLES, 4); 
+	window = glfwCreateWindow(800, 800, "Ternary Subdivision", NULL, NULL);
+	glfwMakeContextCurrent(window);
+	glfwSetKeyCallback(window, key_callback);
+	glfwSetMouseButtonCallback(window,mouseButton);
+	return window;
+}
+
+bool saveObjFile()
+{
+	if(save)
+	{
+		save=false;
+		return true;
+	}
+	return false;
+}
+bool subDivTrue()
+{
+	if(sub)
+	{
+		sub=false;
+		return true;
+	}
+	return false;
+}
+
