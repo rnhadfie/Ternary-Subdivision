@@ -1,3 +1,7 @@
+/*
+Vertex stores a reference to an edge object, and x,y,and z values, and location value.
+*/
+
 #ifndef Vertex_H
 #define Vertex_H
 
